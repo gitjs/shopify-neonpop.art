@@ -130,7 +130,10 @@ export default function FreeShipping() {
   const fetcher = useFetcher<typeof action>();
 
   const isLoading = fetcher.state !== "idle";
-  const isEnabled = !!customization?.enabled;
+  // Optimistic: while action is in-flight, show the expected next state immediately
+  const isEnabled = isLoading
+    ? fetcher.formData?.get("intent") === "enable"
+    : !!customization?.enabled;
   const errors: { field: string; message: string }[] = fetcher.data?.errors ?? [];
 
   const toggle = () => {
