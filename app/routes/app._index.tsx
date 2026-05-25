@@ -4,5 +4,6 @@ import { authenticate } from "../shopify.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   await authenticate.admin(request);
-  return redirect("/app/free-shipping");
+  const url = new URL(request.url);
+  return redirect(`/app/free-shipping?${url.searchParams.toString()}`);
 };

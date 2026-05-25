@@ -2,7 +2,7 @@
 
 client_id = "4f50886d39ec48a466b39e91cb30fcb7"
 name = " neonpop.art"
-application_url = "https://neonpop-art.onrender.com"
+application_url = "https://neonpop-art.onrender.com/app/free-shipping"
 embedded = true
 
 [build]
