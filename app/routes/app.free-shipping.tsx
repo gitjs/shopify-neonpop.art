@@ -8,44 +8,55 @@ const CUSTOMIZATION_TITLE = "Kostenloser Versand EU (Printful)";
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
 
-  const response = await admin.graphql(`#graphql
-    query {
-      shopifyFunctions(first: 25) {
-        nodes {
-          id
-          handle
-        }
-      }
-      deliveryCustomizations(first: 25) {
-        edges {
-          node {
+  try {
+    const response = await admin.graphql(`#graphql
+      query {
+        shopifyFunctions(first: 25) {
+          nodes {
             id
-            title
-            enabled
-            functionId
+            handle
+          }
+        }
+        deliveryCustomizations(first: 25) {
+          edges {
+            node {
+              id
+              title
+              enabled
+              functionId
+            }
           }
         }
       }
+    `);
+
+    const json = await response.json();
+    console.log("[free-shipping] graphql response:", JSON.stringify(json, null, 2));
+
+    const { data } = json;
+
+    if (!data?.shopifyFunctions || !data?.deliveryCustomizations) {
+      console.warn("[free-shipping] missing shopifyFunctions or deliveryCustomizations in response");
+      return { functionId: null, customization: null };
     }
-  `);
 
-  const { data } = await response.json();
+    const ourFunction = (data.shopifyFunctions.nodes as { id: string; handle: string }[]).find(
+      (f) => f.handle === FUNCTION_HANDLE,
+    );
+    console.log("[free-shipping] looking for handle:", FUNCTION_HANDLE, "→ found:", ourFunction ?? "none");
 
-  if (!data?.shopifyFunctions) {
+    const customization = ourFunction
+      ? (data.deliveryCustomizations.edges as { node: { id: string; title: string; enabled: boolean; functionId: string } }[])
+          .map((e) => e.node)
+          .find((c) => c.functionId === ourFunction.id) ?? null
+      : null;
+    console.log("[free-shipping] customization:", customization ?? "none");
+
+    return { functionId: ourFunction?.id ?? null, customization };
+  } catch (error) {
+    console.error("[free-shipping] loader error:", error instanceof Error ? error.stack : error);
     return { functionId: null, customization: null };
   }
-
-  const ourFunction = (data.shopifyFunctions.nodes as { id: string; handle: string }[]).find(
-    (f) => f.handle === FUNCTION_HANDLE,
-  );
-
-  const customization = ourFunction
-    ? (data.deliveryCustomizations.edges as { node: { id: string; title: string; enabled: boolean; functionId: string } }[])
-        .map((e) => e.node)
-        .find((c) => c.functionId === ourFunction.id) ?? null
-    : null;
-
-  return { functionId: ourFunction?.id ?? null, customization };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
