@@ -2,7 +2,6 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { authenticate } from "../shopify.server";
 
-const FUNCTION_HANDLE = "checkout-free-shipping";
 const CUSTOMIZATION_TITLE = "Kostenloser Versand EU (Printful)";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -11,10 +10,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   try {
     const response = await admin.graphql(`#graphql
       query {
-        shopifyFunctions(first: 25) {
+        shopifyFunctions(first: 1) {
           nodes {
             id
-            handle
           }
         }
         deliveryCustomizations(first: 25) {
@@ -40,10 +38,8 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       return { functionId: null, customization: null };
     }
 
-    const ourFunction = (data.shopifyFunctions.nodes as { id: string; handle: string }[]).find(
-      (f) => f.handle === FUNCTION_HANDLE,
-    );
-    console.log("[free-shipping] looking for handle:", FUNCTION_HANDLE, "→ found:", ourFunction ?? "none");
+    const ourFunction = (data.shopifyFunctions.nodes as { id: string }[])[0] ?? null;
+    console.log("[free-shipping] function:", ourFunction ?? "none");
 
     const customization = ourFunction
       ? (data.deliveryCustomizations.edges as { node: { id: string; title: string; enabled: boolean; functionId: string } }[])
