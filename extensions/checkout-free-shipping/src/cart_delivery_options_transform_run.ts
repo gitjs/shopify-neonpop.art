@@ -48,10 +48,12 @@ export function cartDeliveryOptionsTransformRun(
 
     const hasPrintful = group.cartLines.some((line) => {
       const m = line.merchandise;
+      console.error(`[fn] __typename=${m.__typename} vendor=${m.__typename === "ProductVariant" ? m.product.vendor : "n/a"}`);
       return (
         m.__typename === "ProductVariant" && m.product.vendor === "Printful"
       );
     });
+    console.error(`[fn] countryCode=${countryCode} hasPrintful=${hasPrintful}`);
 
     if (!hasPrintful) continue;
 
