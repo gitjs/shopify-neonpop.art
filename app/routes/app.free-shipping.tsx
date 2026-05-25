@@ -31,6 +31,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   const { data } = await response.json();
 
+  if (!data?.shopifyFunctions) {
+    return { functionId: null, customization: null };
+  }
+
   const ourFunction = (data.shopifyFunctions.nodes as { id: string; handle: string }[]).find(
     (f) => f.handle === FUNCTION_HANDLE,
   );

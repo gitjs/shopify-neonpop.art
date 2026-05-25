@@ -7,9 +7,6 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 
-const FUNCTION_HANDLE = "checkout-free-shipping";
-const CUSTOMIZATION_TITLE = "Kostenloser Versand EU (Printful)";
-
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
   apiSecretKey: process.env.SHOPIFY_API_SECRET || "",
@@ -21,48 +18,6 @@ const shopify = shopifyApp({
   distribution: AppDistribution.AppStore,
   future: {
     expiringOfflineAccessTokens: true,
-  },
-  hooks: {
-    afterAuth: async ({ admin }) => {
-      const functionsRes = await admin.graphql(`#graphql
-        query {
-          shopifyFunctions(first: 25) {
-            nodes { id handle }
-          }
-          deliveryCustomizations(first: 25) {
-            edges {
-              node { id functionId }
-            }
-          }
-        }
-      `);
-      const { data } = await functionsRes.json();
-
-      const fn = (data.shopifyFunctions.nodes as { id: string; handle: string }[])
-        .find((f) => f.handle === FUNCTION_HANDLE);
-      if (!fn) return;
-
-      const alreadyExists = (
-        data.deliveryCustomizations.edges as { node: { id: string; functionId: string } }[]
-      ).some((e) => e.node.functionId === fn.id);
-      if (alreadyExists) return;
-
-      await admin.graphql(
-        `#graphql
-          mutation CreateDeliveryCustomization($input: DeliveryCustomizationInput!) {
-            deliveryCustomizationCreate(deliveryCustomization: $input) {
-              deliveryCustomization { id }
-              userErrors { field message }
-            }
-          }
-        `,
-        {
-          variables: {
-            input: { functionId: fn.id, title: CUSTOMIZATION_TITLE, enabled: true },
-          },
-        },
-      );
-    },
   },
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
