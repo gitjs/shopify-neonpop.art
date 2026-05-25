@@ -6,14 +6,7 @@ query CartDeliveryOptionsTransformRunInput {
         countryCode
       }
       cartLines {
-        merchandise {
-          __typename
-          ... on ProductVariant {
-            product {
-              vendor
-            }
-          }
-        }
+        id
       }
       deliveryOptions {
         handle

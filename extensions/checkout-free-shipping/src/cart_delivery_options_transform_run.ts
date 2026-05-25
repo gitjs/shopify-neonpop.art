@@ -46,16 +46,7 @@ export function cartDeliveryOptionsTransformRun(
     const countryCode = group.deliveryAddress?.countryCode;
     if (!countryCode || !EU_COUNTRIES.has(countryCode)) continue;
 
-    const hasPrintful = group.cartLines.some((line) => {
-      const m = line.merchandise;
-      console.error(`[fn] __typename=${m.__typename} vendor=${m.__typename === "ProductVariant" ? m.product.vendor : "n/a"}`);
-      return (
-        m.__typename === "ProductVariant" && m.product.vendor === "Printful"
-      );
-    });
-    console.error(`[fn] countryCode=${countryCode} hasPrintful=${hasPrintful}`);
-
-    if (!hasPrintful) continue;
+    // All products in this shop are fulfilled by Printful, no vendor check needed
 
     const freeOptions = group.deliveryOptions.filter(
       (opt) => parseFloat(opt.cost.amount) === 0,
