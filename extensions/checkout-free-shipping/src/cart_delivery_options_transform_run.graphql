@@ -1,0 +1,25 @@
+query CartDeliveryOptionsTransformRunInput {
+  cart {
+    deliveryGroups {
+      id
+      deliveryAddress {
+        countryCode
+      }
+      cartLines {
+        merchandise {
+          ... on ProductVariant {
+            product {
+              vendor
+            }
+          }
+        }
+      }
+      deliveryOptions {
+        handle
+        cost {
+          amount
+        }
+      }
+    }
+  }
+}

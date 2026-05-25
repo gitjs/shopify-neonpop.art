@@ -1,0 +1,41 @@
+{
+  "payload": {
+    "export": "cart-delivery-options-transform-run",
+    "target": "cart.delivery-options.transform.run",
+    "input": {
+      "cart": {
+        "deliveryGroups": [
+          {
+            "id": "gid://shopify/CartDeliveryGroup/1",
+            "deliveryAddress": {
+              "countryCode": "US"
+            },
+            "cartLines": [
+              {
+                "merchandise": {
+                  "__typename": "ProductVariant",
+                  "product": {
+                    "vendor": "Printful"
+                  }
+                }
+              }
+            ],
+            "deliveryOptions": [
+              {
+                "handle": "free-shipping",
+                "cost": { "amount": "0.00" }
+              },
+              {
+                "handle": "express-shipping",
+                "cost": { "amount": "9.99" }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "output": {
+      "operations": []
+    }
+  }
+}
