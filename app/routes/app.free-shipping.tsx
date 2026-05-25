@@ -59,63 +59,70 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { admin } = await authenticate.admin(request);
   const formData = await request.formData();
   const intent = formData.get("intent") as string;
+  console.log("[free-shipping] action intent:", intent);
 
-  if (intent === "enable") {
-    const functionId = formData.get("functionId") as string;
-    const res = await admin.graphql(
-      `#graphql
-        mutation CreateDeliveryCustomization($input: DeliveryCustomizationInput!) {
-          deliveryCustomizationCreate(deliveryCustomization: $input) {
-            deliveryCustomization {
-              id
-              enabled
-            }
-            userErrors {
-              field
-              message
+  try {
+    if (intent === "enable") {
+      const functionId = formData.get("functionId") as string;
+      console.log("[free-shipping] enabling with functionId:", functionId);
+      const res = await admin.graphql(
+        `#graphql
+          mutation CreateDeliveryCustomization($input: DeliveryCustomizationInput!) {
+            deliveryCustomizationCreate(deliveryCustomization: $input) {
+              deliveryCustomization {
+                id
+                enabled
+              }
+              userErrors {
+                field
+                message
+              }
             }
           }
-        }
-      `,
-      {
-        variables: {
-          input: {
-            functionId,
-            title: CUSTOMIZATION_TITLE,
-            enabled: true,
+        `,
+        {
+          variables: {
+            input: {
+              functionId,
+              title: CUSTOMIZATION_TITLE,
+              enabled: true,
+            },
           },
         },
-      },
-    );
-    const { data } = await res.json();
-    const errors = data?.deliveryCustomizationCreate?.userErrors ?? [];
-    if (errors.length > 0) {
-      return { errors };
-    }
-  } else if (intent === "disable") {
-    const customizationId = formData.get("customizationId") as string;
-    const res = await admin.graphql(
-      `#graphql
-        mutation DeleteDeliveryCustomization($id: ID!) {
-          deliveryCustomizationDelete(id: $id) {
-            deletedId
-            userErrors {
-              field
-              message
+      );
+      const json = await res.json();
+      console.log("[free-shipping] enable response:", JSON.stringify(json));
+      const errors = json.data?.deliveryCustomizationCreate?.userErrors ?? [];
+      if (errors.length > 0) return { errors };
+
+    } else if (intent === "disable") {
+      const customizationId = formData.get("customizationId") as string;
+      console.log("[free-shipping] disabling customizationId:", customizationId);
+      const res = await admin.graphql(
+        `#graphql
+          mutation DeleteDeliveryCustomization($id: ID!) {
+            deliveryCustomizationDelete(id: $id) {
+              deletedId
+              userErrors {
+                field
+                message
+              }
             }
           }
-        }
-      `,
-      { variables: { id: customizationId } },
-    );
-    const { data } = await res.json();
-    const errors = data?.deliveryCustomizationDelete?.userErrors ?? [];
-    if (errors.length > 0) {
-      return { errors };
+        `,
+        { variables: { id: customizationId } },
+      );
+      const json = await res.json();
+      console.log("[free-shipping] disable response:", JSON.stringify(json));
+      const errors = json.data?.deliveryCustomizationDelete?.userErrors ?? [];
+      if (errors.length > 0) return { errors };
     }
-  }
 
-  return { errors: [] };
+    return { errors: [] };
+  } catch (error) {
+    console.error("[free-shipping] action error:", error instanceof Error ? error.stack : error);
+    return { errors: [{ field: "unknown", message: String(error) }] };
+  }
 };
 
 export default function FreeShipping() {
